@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">DialogsAssignment2</string>
-
-    <string name="enter_num">Enter Number</string>
-    <string name="enter_num2">Enter a number in the box</string>
-
-    <string name="click">Click Me!</string>
-</resources>
