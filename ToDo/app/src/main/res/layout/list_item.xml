@@ -53,11 +53,11 @@
         android:textColor="@android:color/black" />
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:id="@+id/imageView"
         android:src="@mipmap/ic_action_inc"
-        android:layout_alignBottom="@+id/dateText"
+        android:layout_alignBottom="@+id/descriptionText"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

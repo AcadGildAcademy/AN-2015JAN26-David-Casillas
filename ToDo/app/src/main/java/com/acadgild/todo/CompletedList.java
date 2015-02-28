@@ -1,22 +1,31 @@
 package com.acadgild.todo;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
+import android.support.v7.app.ActionBarActivity;
 import android.widget.ListView;
 
 
-public class CompletedList extends Activity {
+public class CompletedList extends ActionBarActivity {
 
     private ListView listview;
-    private ArrayAdapter adapter;
+    private TaskAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.incomplete_list);
+        setContentView(R.layout.list);
+
+        getSupportActionBar();
 
         listview = (ListView) findViewById(R.id.listView);
+
+
+
+
+
+
+
+        listview.setAdapter(adapter);
 
 
 
