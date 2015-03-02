@@ -7,8 +7,8 @@ import android.widget.ListView;
 
 public class CompletedList extends ActionBarActivity {
 
-    private ListView listview;
-    private TaskAdapter adapter;
+    public ListView listview;
+    public TaskAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

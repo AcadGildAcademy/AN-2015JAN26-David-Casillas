@@ -1,6 +1,5 @@
 package com.acadgild.todo;
 
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,18 +8,21 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.List;
+
+
 public class TaskAdapter extends ArrayAdapter<TaskInfo> {
 
     private Context mContext;
     private int mLayoutResourceId;
-    private TaskInfo[] mData;
+    private List<TaskInfo> taskList;
 
-    public TaskAdapter(Context context, int resource, TaskInfo[] data) {
-        super(context, resource, data);
+    public TaskAdapter(Context context, int resource, List<TaskInfo> taskList) {
+        super(context, resource, taskList);
 
         this.mContext = context;
         this.mLayoutResourceId = resource;
-        this.mData = data;
+        this.taskList = taskList;
     }
 
     @Override
@@ -46,11 +48,12 @@ public class TaskAdapter extends ArrayAdapter<TaskInfo> {
             holder = (Holder) row.getTag();
         }
 
-        TaskInfo info = mData[position];
+        TaskInfo info = taskList.get(position);
 
         holder.titleHolder.setText(info.getTitle());
         holder.descriptionHolder.setText(info.getDescription());
         holder.dateHolder.setText(info.getDate());
+        holder.dateHeaderHolder.setText(info.getDate());
         holder.imageHolder.setImageResource(info.getImage());
 
         return row;
@@ -67,5 +70,16 @@ public class TaskAdapter extends ArrayAdapter<TaskInfo> {
         TextView dateHolder;
         ImageView imageHolder;
         TextView dateHeaderHolder;
+    }
+
+    @Override
+    public int getCount() {
+        return super.getCount();
+    }
+
+    public void updateList(List<TaskInfo> newList) {
+        taskList.clear();
+        taskList.addAll(newList);
+        this.notifyDataSetChanged();
     }
 }

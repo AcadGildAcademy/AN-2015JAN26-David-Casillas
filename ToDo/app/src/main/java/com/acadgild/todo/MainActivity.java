@@ -1,26 +1,23 @@
 package com.acadgild.todo;
 
-import android.app.Dialog;
 import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
 
-    private ListView listview;
-    private TaskAdapter adapter;
-    TaskInfo[] toDoList = new TaskInfo[] {new TaskInfo("Title","Description","01/01/01",R.mipmap.ic_action_inc)};
+    public List<TaskInfo> allTasks = null;
+    public ListView listview;
+    public TaskAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,10 +26,13 @@ public class MainActivity extends ActionBarActivity {
 
         getSupportActionBar();
 
-        listview = (ListView) findViewById(R.id.listView);
-        adapter = new TaskAdapter(this, R.layout.list_item, toDoList);
+        final TaskDataBase db = new TaskDataBase(this);
 
-        if(listview != null) {
+        listview = (ListView) findViewById(R.id.listView);
+
+        allTasks = db.getAllTasks();
+        adapter = new TaskAdapter(this, R.layout.list_item, allTasks);
+        if (listview != null) {
             listview.setAdapter(adapter);
         }
 
@@ -40,44 +40,33 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                final Dialog dialog = new Dialog(MainActivity.this);
-                LayoutInflater inflater = getLayoutInflater();
-                View layout = inflater.inflate(R.layout.custom_dialog, null);
-                dialog.setContentView(layout);
-
-                EditText title = (EditText) layout.findViewById(R.id.titleEditText);
-                EditText description = (EditText) layout.findViewById(R.id.descriptionEditText);
-                DatePicker datePicker = (DatePicker) layout.findViewById(R.id.datePicker);
-                Button saveButton = (Button) layout.findViewById(R.id.buttonSave);
-                Button cancelButton = (Button) layout.findViewById(R.id.buttonCancel);
-
-                saveButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                    }
-                });
-
-                cancelButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.cancel();
-                    }
-                });
-
-                dialog.show();
+                TaskInfo task = db.getTask(position + 1);
+                int status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp));
+                if (status > 0) {
+                    Toast.makeText(getApplicationContext(), task.getTitle() + " has been completed!", Toast.LENGTH_SHORT).show();
+                    List<TaskInfo> updatedTasks = db.getAllTasks();
+                    adapter.updateList(updatedTasks);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Error updating database!", Toast.LENGTH_SHORT).show();
+                }
 
                 return true;
             }
         });
 
-
-
     }
 
     private void AddTask() {
 
+        TaskDialog dialog = new TaskDialog(MainActivity.this);
+        dialog.show();
+
     }
+
+    public void OnSave() {
+        adapter.updateList(allTasks);
+    }
+
 
     private void CompletedList() {
 
@@ -119,4 +108,5 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }
