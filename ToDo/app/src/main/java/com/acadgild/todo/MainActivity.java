@@ -36,6 +36,23 @@ public class MainActivity extends ActionBarActivity {
             listview.setAdapter(adapter);
         }
 
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                TaskInfo task = db.getTask(position + 1);
+                TaskDialog dialog = new TaskDialog(MainActivity.this);
+                dialog.title.setText(task.getTitle());
+                dialog.description.setText(task.getDescription());
+                String[] date = task.getDate().split("/");
+                int year = Integer.parseInt(date[2]);
+                int monthOfYear = Integer.parseInt(date[0])-1;
+                int dayOfMonth = Integer.parseInt(date[1]);
+                dialog.datePicker.init(year, monthOfYear, dayOfMonth, null);
+                dialog.show();
+            }
+        });
+
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {

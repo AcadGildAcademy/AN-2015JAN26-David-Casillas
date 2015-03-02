@@ -52,7 +52,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
         if (cursor != null)
             cursor.moveToFirst();
             TaskInfo taskInfo = new TaskInfo(id, cursor.getString(0),
-                    cursor.getString(1), cursor.getString(3), Integer.parseInt(cursor.getString(3)));
+                    cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
 
             return taskInfo;
     }
@@ -77,6 +77,28 @@ public class TaskDataBase extends SQLiteOpenHelper {
         return allTasks;
     }
 
+    public List<TaskInfo> getAllCompletedTasks() {
+        List<TaskInfo> allCompletedTasks = new ArrayList<>();
+        String selectQuery = "SELECT * FROM " + KEY_IMAGE;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                TaskInfo taskInfo = new TaskInfo();
+                taskInfo.setID(Integer.parseInt(cursor.getString(0)));
+                taskInfo.setDate(cursor.getString(1));
+                taskInfo.setTitle(cursor.getString(2));
+                taskInfo.setDescription(cursor.getString(3));
+                taskInfo.setImage(Integer.parseInt(cursor.getString(4)));
+                if (taskInfo.getImage() == R.mipmap.ic_action_comp) {
+                    allCompletedTasks.add(taskInfo);
+                }
+            } while (cursor.moveToNext());
+        }
+        return allCompletedTasks;
+    }
+
     public int updateTask(TaskInfo task) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -89,14 +111,14 @@ public class TaskDataBase extends SQLiteOpenHelper {
                 new String[] {String.valueOf(task.getID()) });
     }
 
-/*
+
     public void deleteTask(TaskInfo task) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TASKS, KEY_ID + " = ?",
                 new String[] { String.valueOf(task.getID())});
         db.close();
     }
-*/
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

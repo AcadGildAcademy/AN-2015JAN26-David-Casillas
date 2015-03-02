@@ -9,7 +9,8 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
-import java.util.List;
+import java.util.Calendar;
+
 
 public class TaskDialog extends Dialog {
 
@@ -18,8 +19,14 @@ public class TaskDialog extends Dialog {
     //}
 
     //private SaveListener listener;
+    public EditText title;
+    public EditText description;
+    public DatePicker datePicker;
+    public Button saveButton;
+    public Button cancelButton;
+    //private static final String dateFormat = "MM/dd/yyyy";
 
-    public TaskDialog(final Context context) {
+    public TaskDialog(Context context) {
         super(context);
 
         final TaskDataBase db = new TaskDataBase(context);
@@ -27,11 +34,11 @@ public class TaskDialog extends Dialog {
         LayoutInflater inflater = getLayoutInflater();
         View layout = inflater.inflate(R.layout.custom_dialog, null);
         setContentView(layout);
-        final EditText title = (EditText) layout.findViewById(R.id.titleEditText);
-        final EditText description = (EditText) layout.findViewById(R.id.descriptionEditText);
-        final DatePicker datePicker = (DatePicker) layout.findViewById(R.id.datePicker);
-        Button saveButton = (Button) layout.findViewById(R.id.buttonSave);
-        Button cancelButton = (Button) layout.findViewById(R.id.buttonCancel);
+        title = (EditText) layout.findViewById(R.id.titleEditText);
+        description = (EditText) layout.findViewById(R.id.descriptionEditText);
+        datePicker = (DatePicker) layout.findViewById(R.id.datePicker);
+        saveButton = (Button) layout.findViewById(R.id.buttonSave);
+        cancelButton = (Button) layout.findViewById(R.id.buttonCancel);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -49,9 +56,9 @@ public class TaskDialog extends Dialog {
                     int day = datePicker.getDayOfMonth();
                     int month = datePicker.getMonth() + 1;
                     int year = datePicker.getYear();
-                    String date = String.valueOf(day) + "/" + month + "/" + year;
+                    String date = month + "/" + String.valueOf(day) + "/" + year;
                     db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc));
-                    
+
                     dismiss();
                 }
             }
@@ -67,4 +74,5 @@ public class TaskDialog extends Dialog {
 
         show();
     }
+
 }
