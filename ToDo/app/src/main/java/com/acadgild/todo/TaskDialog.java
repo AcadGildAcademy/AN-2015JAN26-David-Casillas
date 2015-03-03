@@ -52,6 +52,7 @@ public class TaskDialog extends Dialog {
                     int year = datePicker.getYear();
                     String date = month + "/" + String.valueOf(day) + "/" + year;
                     db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+
                     dismiss();
                     ((Activity) context).finish();
                     Intent intent = new Intent(context, MainActivity.class);

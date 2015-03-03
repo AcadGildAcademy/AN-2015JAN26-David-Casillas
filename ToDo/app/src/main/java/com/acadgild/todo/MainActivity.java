@@ -60,8 +60,7 @@ public class MainActivity extends ActionBarActivity {
                 TaskInfo task = db.getTask(position + 1);
                 int update_status = 0;
                 if (task.getStatus() == 0) {
-                    update_status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp, 1));
-                    //Toast.makeText(getApplicationContext(), String.valueOf(update_status), Toast.LENGTH_SHORT).show();
+                    update_status = db.updateTask(new TaskInfo(task.getID(), task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp, 1));
                     if (update_status > 0) {
                         Toast.makeText(getApplicationContext(), task.getTitle() + " has been completed!", Toast.LENGTH_SHORT).show();
                         List<TaskInfo> updatedTasks = db.getAllTasks();
@@ -70,7 +69,7 @@ public class MainActivity extends ActionBarActivity {
                         Toast.makeText(getApplicationContext(), "Error updating database!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    update_status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_inc, 0));
+                    update_status = db.updateTask(new TaskInfo(task.getID(), task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_inc, 0));
                     if (update_status > 0) {
                         Toast.makeText(getApplicationContext(), task.getTitle() + " is incomplete!", Toast.LENGTH_SHORT).show();
                         List<TaskInfo> updatedTasks = db.getAllTasks();
