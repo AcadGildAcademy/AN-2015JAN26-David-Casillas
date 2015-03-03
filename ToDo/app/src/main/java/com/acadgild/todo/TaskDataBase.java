@@ -21,6 +21,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
     private static final String KEY_TITLE = "title";
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_IMAGE = "image";
+    private static final String KEY_STATUS = "status";
 
     public TaskDataBase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -30,7 +31,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TASKS_TABLE = "CREATE TABLE " + TABLE_TASKS + "(" + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_DATE + " TEXT," + KEY_TITLE + " TEXT,"
-                + KEY_DESCRIPTION + " TEXT," + KEY_IMAGE + " INTEGER" + ")";
+                + KEY_DESCRIPTION + " TEXT," + KEY_IMAGE + " INTEGER," + KEY_STATUS + " INTEGER" + ")";
         db.execSQL(CREATE_TASKS_TABLE);
     }
 
@@ -41,18 +42,19 @@ public class TaskDataBase extends SQLiteOpenHelper {
         values.put(KEY_TITLE, task.getTitle());
         values.put(KEY_DESCRIPTION, task.getDescription());
         values.put(KEY_IMAGE, task.getImage());
+        values.put(KEY_STATUS, task.getStatus());
         db.insert(TABLE_TASKS, null, values);
         db.close();
     }
 
     TaskInfo getTask(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_TASKS, new String[] {KEY_DATE, KEY_TITLE, KEY_DESCRIPTION, KEY_IMAGE}, KEY_ID + "=?",
+        Cursor cursor = db.query(TABLE_TASKS, new String[] {KEY_DATE, KEY_TITLE, KEY_DESCRIPTION, KEY_IMAGE , KEY_STATUS}, KEY_ID + "=?",
                 new String[] {String.valueOf(id)}, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
             TaskInfo taskInfo = new TaskInfo(id, cursor.getString(0),
-                    cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
+                    cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)), Integer.parseInt(cursor.getString(4)));
 
             return taskInfo;
     }
@@ -71,6 +73,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
                 taskInfo.setTitle(cursor.getString(2));
                 taskInfo.setDescription(cursor.getString(3));
                 taskInfo.setImage(Integer.parseInt(cursor.getString(4)));
+                taskInfo.setStatus(Integer.parseInt(cursor.getString(5)));
                 allTasks.add(taskInfo);
             } while (cursor.moveToNext());
         }
@@ -79,7 +82,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
 
     public List<TaskInfo> getAllCompletedTasks() {
         List<TaskInfo> allCompletedTasks = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + KEY_IMAGE;
+        String selectQuery = "SELECT * FROM " + TABLE_TASKS;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -91,7 +94,8 @@ public class TaskDataBase extends SQLiteOpenHelper {
                 taskInfo.setTitle(cursor.getString(2));
                 taskInfo.setDescription(cursor.getString(3));
                 taskInfo.setImage(Integer.parseInt(cursor.getString(4)));
-                if (taskInfo.getImage() == R.mipmap.ic_action_comp) {
+                taskInfo.setStatus(Integer.parseInt(cursor.getString(5)));
+                if (taskInfo.getStatus() == 1) {
                     allCompletedTasks.add(taskInfo);
                 }
             } while (cursor.moveToNext());
@@ -106,6 +110,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
         values.put(KEY_TITLE, task.getTitle());
         values.put(KEY_DESCRIPTION, task.getDescription());
         values.put(KEY_IMAGE, task.getImage());
+        values.put(KEY_STATUS, task.getStatus());
 
         return db.update(TABLE_TASKS, values, KEY_ID + " = ?",
                 new String[] {String.valueOf(task.getID()) });

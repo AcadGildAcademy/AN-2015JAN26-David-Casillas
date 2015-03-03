@@ -58,13 +58,26 @@ public class MainActivity extends ActionBarActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
                 TaskInfo task = db.getTask(position + 1);
-                int status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp));
-                if (status > 0) {
-                    Toast.makeText(getApplicationContext(), task.getTitle() + " has been completed!", Toast.LENGTH_SHORT).show();
-                    List<TaskInfo> updatedTasks = db.getAllTasks();
-                    adapter.updateList(updatedTasks);
+                int update_status = 0;
+                if (task.getStatus() == 0) {
+                    update_status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp, 1));
+                    //Toast.makeText(getApplicationContext(), String.valueOf(update_status), Toast.LENGTH_SHORT).show();
+                    if (update_status > 0) {
+                        Toast.makeText(getApplicationContext(), task.getTitle() + " has been completed!", Toast.LENGTH_SHORT).show();
+                        List<TaskInfo> updatedTasks = db.getAllTasks();
+                        adapter.updateList(updatedTasks);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Error updating database!", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(getApplicationContext(), "Error updating database!", Toast.LENGTH_SHORT).show();
+                    update_status = db.updateTask(new TaskInfo(task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_inc, 0));
+                    if (update_status > 0) {
+                        Toast.makeText(getApplicationContext(), task.getTitle() + " is incomplete!", Toast.LENGTH_SHORT).show();
+                        List<TaskInfo> updatedTasks = db.getAllTasks();
+                        adapter.updateList(updatedTasks);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Error updating database!", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 return true;
@@ -79,11 +92,6 @@ public class MainActivity extends ActionBarActivity {
         dialog.show();
 
     }
-
-    public void OnSave() {
-        adapter.updateList(allTasks);
-    }
-
 
     private void CompletedList() {
 

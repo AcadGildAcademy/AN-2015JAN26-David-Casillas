@@ -1,24 +1,19 @@
 package com.acadgild.todo;
 
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.view.LayoutInflater;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
-import java.util.Calendar;
-
 
 public class TaskDialog extends Dialog {
 
-    //public interface SaveListener {
-        //public void onSave();
-    //}
-
-    //private SaveListener listener;
+    Context context;
     public EditText title;
     public EditText description;
     public DatePicker datePicker;
@@ -26,19 +21,18 @@ public class TaskDialog extends Dialog {
     public Button cancelButton;
     //private static final String dateFormat = "MM/dd/yyyy";
 
-    public TaskDialog(Context context) {
+    public TaskDialog(final Context context) {
         super(context);
+        this.context = context;
 
         final TaskDataBase db = new TaskDataBase(context);
 
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_dialog, null);
-        setContentView(layout);
-        title = (EditText) layout.findViewById(R.id.titleEditText);
-        description = (EditText) layout.findViewById(R.id.descriptionEditText);
-        datePicker = (DatePicker) layout.findViewById(R.id.datePicker);
-        saveButton = (Button) layout.findViewById(R.id.buttonSave);
-        cancelButton = (Button) layout.findViewById(R.id.buttonCancel);
+        setContentView(R.layout.custom_dialog);
+        title = (EditText) findViewById(R.id.titleEditText);
+        description = (EditText) findViewById(R.id.descriptionEditText);
+        datePicker = (DatePicker) findViewById(R.id.datePicker);
+        saveButton = (Button) findViewById(R.id.buttonSave);
+        cancelButton = (Button) findViewById(R.id.buttonCancel);
 
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,9 +51,11 @@ public class TaskDialog extends Dialog {
                     int month = datePicker.getMonth() + 1;
                     int year = datePicker.getYear();
                     String date = month + "/" + String.valueOf(day) + "/" + year;
-                    db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc));
-
+                    db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
                     dismiss();
+                    ((Activity) context).finish();
+                    Intent intent = new Intent(context, MainActivity.class);
+                    context.startActivity(intent);
                 }
             }
 
