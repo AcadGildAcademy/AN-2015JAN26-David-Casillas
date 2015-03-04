@@ -52,8 +52,8 @@ public class TaskAdapter extends ArrayAdapter<TaskInfo> {
 
         holder.titleHolder.setText(info.getTitle());
         holder.descriptionHolder.setText(info.getDescription());
-        holder.dateHolder.setText(info.getDate());
-        holder.dateHeaderHolder.setText(info.getDate());
+        holder.dateHolder.setText(ConvertDate(info.getDate()));
+        holder.dateHeaderHolder.setText(ConvertDate(info.getDate()));
         holder.imageHolder.setImageResource(info.getImage());
 
         return row;
@@ -81,5 +81,14 @@ public class TaskAdapter extends ArrayAdapter<TaskInfo> {
         taskList.clear();
         taskList.addAll(newList);
         this.notifyDataSetChanged();
+    }
+
+    private String ConvertDate(String date) {
+
+        String year = date.substring(0,4);
+        String month = date.substring(4,6);
+        String day = date.substring(6,8);
+
+        return month + "/" + day + "/" + year;
     }
 }

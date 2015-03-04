@@ -10,6 +10,9 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
+import java.util.Calendar;
+import java.util.Locale;
+
 
 public class TaskDialog extends Dialog {
 
@@ -19,7 +22,7 @@ public class TaskDialog extends Dialog {
     public DatePicker datePicker;
     public Button saveButton;
     public Button cancelButton;
-    //private static final String dateFormat = "MM/dd/yyyy";
+    private static final String yearMonthDay = "yyyyMMdd";
 
     public TaskDialog(final Context context) {
         super(context);
@@ -48,10 +51,19 @@ public class TaskDialog extends Dialog {
                     String mTitle = title.getText().toString();
                     String mDescription = description.getText().toString();
                     int day = datePicker.getDayOfMonth();
-                    int month = datePicker.getMonth() + 1;
+                    int month = datePicker.getMonth();
                     int year = datePicker.getYear();
-                    String date = month + "/" + String.valueOf(day) + "/" + year;
-                    db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                    Calendar calendar = Calendar.getInstance(Locale.getDefault());
+                    calendar.set(year, month, day);
+                    String date = String.valueOf(android.text.format.DateFormat.format(yearMonthDay, calendar.getTime()));
+
+                    boolean check = db.checkTask(mTitle);
+
+                    if (check) {
+                        db.updateTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                    } else {
+                        db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                    }
 
                     dismiss();
                     ((Activity) context).finish();

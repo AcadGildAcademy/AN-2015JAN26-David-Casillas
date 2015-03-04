@@ -44,10 +44,10 @@ public class MainActivity extends ActionBarActivity {
                 TaskDialog dialog = new TaskDialog(MainActivity.this);
                 dialog.title.setText(task.getTitle());
                 dialog.description.setText(task.getDescription());
-                String[] date = task.getDate().split("/");
-                int year = Integer.parseInt(date[2]);
-                int monthOfYear = Integer.parseInt(date[0])-1;
-                int dayOfMonth = Integer.parseInt(date[1]);
+                String date = task.getDate();
+                int year = Integer.parseInt(date.substring(0,4));
+                int monthOfYear = Integer.parseInt(date.substring(4,6))-1;
+                int dayOfMonth = Integer.parseInt(date.substring(6,8));
                 dialog.datePicker.init(year, monthOfYear, dayOfMonth, null);
                 dialog.show();
             }
@@ -98,7 +98,6 @@ public class MainActivity extends ActionBarActivity {
         startActivity(i);
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

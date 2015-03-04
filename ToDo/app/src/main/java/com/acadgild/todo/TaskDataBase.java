@@ -59,9 +59,19 @@ public class TaskDataBase extends SQLiteOpenHelper {
             return taskInfo;
     }
 
+    boolean checkTask(String title) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_TASKS, null, KEY_TITLE + "=?", new String[]{title}, null, null, null, null);
+        if (cursor.getCount() > 0)
+            return true;
+        else
+            return false;
+
+    }
+
     public List<TaskInfo> getAllTasks() {
         List<TaskInfo> allTasks = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_TASKS;
+        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " ORDER BY " + KEY_DATE + " ASC";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
@@ -82,7 +92,7 @@ public class TaskDataBase extends SQLiteOpenHelper {
 
     public List<TaskInfo> getAllCompletedTasks() {
         List<TaskInfo> allCompletedTasks = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_TASKS;
+        String selectQuery = "SELECT * FROM " + TABLE_TASKS + " ORDER BY " + KEY_DATE + " ASC";
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 

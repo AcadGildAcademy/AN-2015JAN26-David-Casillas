@@ -5,6 +5,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public class CompletedList extends ActionBarActivity {
 
                 TaskInfo task = db.getTask(position + 1);
                 db.deleteTask(task);
+                Toast.makeText(getApplicationContext(), task.getTitle() + " has been deleted!", Toast.LENGTH_SHORT).show();
 
                 return true;
             }
