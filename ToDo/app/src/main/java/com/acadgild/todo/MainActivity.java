@@ -40,7 +40,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                TaskInfo task = db.getTask(position + 1);
+                TaskInfo task = allTasks.get(position);
                 TaskDialog dialog = new TaskDialog(MainActivity.this);
                 dialog.title.setText(task.getTitle());
                 dialog.description.setText(task.getDescription());
@@ -57,7 +57,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                TaskInfo task = db.getTask(position + 1);
+                TaskInfo task = allTasks.get(position);
                 int update_status = 0;
                 if (task.getStatus() == 0) {
                     update_status = db.updateTask(new TaskInfo(task.getID(), task.getDate(), task.getTitle(), task.getDescription(), R.mipmap.ic_action_comp, 1));
