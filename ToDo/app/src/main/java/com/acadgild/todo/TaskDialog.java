@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -22,6 +23,8 @@ public class TaskDialog extends Dialog {
     public DatePicker datePicker;
     public Button saveButton;
     public Button cancelButton;
+    public int id;
+    public int checkButton;
     private static final String yearMonthDay = "yyyyMMdd";
 
     public TaskDialog(final Context context) {
@@ -59,10 +62,25 @@ public class TaskDialog extends Dialog {
 
                     boolean check = db.checkTask(mTitle);
 
-                    if (check) {
-                        db.updateTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
-                    } else {
-                        db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                    if (checkButton == 0) { //editing task
+                        TaskInfo task = db.getTask(id);
+                        String oldTitle = task.getTitle();
+                        if (oldTitle.equals(mTitle)) {
+                            db.updateTask(new TaskInfo(id, date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                        } else if (!oldTitle.equals(mTitle) && check) {
+                            Toast.makeText(context, mTitle + " is being used, try a different title!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            db.updateTask(new TaskInfo(id, date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+                        }
+                    }
+
+                    if (checkButton == 1) { //adding new task
+                        if (check) {
+                            Toast.makeText(context, mTitle + " is being used, try a different title!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            db.addTask(new TaskInfo(date, mTitle, mDescription, R.mipmap.ic_action_inc, 0));
+
+                        }
                     }
 
                     dismiss();

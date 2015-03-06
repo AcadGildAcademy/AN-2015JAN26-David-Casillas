@@ -1,5 +1,6 @@
 package com.acadgild.todo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
@@ -36,12 +37,21 @@ public class CompletedList extends ActionBarActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                TaskInfo task = db.getTask(position + 1);
+                TaskInfo task = allCompletedTasks.get(position);
                 db.deleteTask(task);
                 Toast.makeText(getApplicationContext(), task.getTitle() + " has been deleted!", Toast.LENGTH_SHORT).show();
+                allCompletedTasks = db.getAllCompletedTasks();
+                adapter.updateList(allCompletedTasks);
 
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }

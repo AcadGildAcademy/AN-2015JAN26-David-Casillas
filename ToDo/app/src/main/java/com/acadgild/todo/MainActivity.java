@@ -44,6 +44,8 @@ public class MainActivity extends ActionBarActivity {
                 TaskDialog dialog = new TaskDialog(MainActivity.this);
                 dialog.title.setText(task.getTitle());
                 dialog.description.setText(task.getDescription());
+                dialog.id = task.getID();
+                dialog.checkButton = 0;
                 String date = task.getDate();
                 int year = Integer.parseInt(date.substring(0,4));
                 int monthOfYear = Integer.parseInt(date.substring(4,6))-1;
@@ -88,6 +90,7 @@ public class MainActivity extends ActionBarActivity {
     private void AddTask() {
 
         TaskDialog dialog = new TaskDialog(MainActivity.this);
+        dialog.checkButton = 1;
         dialog.show();
 
     }
