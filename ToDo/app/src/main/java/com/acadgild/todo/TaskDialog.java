@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -35,7 +36,9 @@ public class TaskDialog extends Dialog {
 
         setContentView(R.layout.custom_dialog);
         title = (EditText) findViewById(R.id.titleEditText);
+        title.setImeOptions(EditorInfo.IME_ACTION_NEXT);
         description = (EditText) findViewById(R.id.descriptionEditText);
+        description.setImeOptions(EditorInfo.IME_ACTION_DONE);
         datePicker = (DatePicker) findViewById(R.id.datePicker);
         saveButton = (Button) findViewById(R.id.buttonSave);
         cancelButton = (Button) findViewById(R.id.buttonCancel);
