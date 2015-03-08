@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AndroidBatteryPercentage</string>
+
+    <string name="battery">Battery Level</string>
+    <string name="notify">Notify?</string>
+    <string name="wifi">Wifi</string>
+
+
+</resources>
