@@ -1,17 +1,18 @@
 package com.acadgild.tabsassignment;
 
-import android.app.FragmentTransaction;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.app.ActionBar;
+import android.support.v7.app.ActionBar;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 
 import com.acadgild.tabsassignment.adapter.TabsPagerAdapter;
 
 
-public class MainActivity extends FragmentActivity implements ActionBar.TabListener, ViewPager.OnPageChangeListener {
+public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, ViewPager.OnPageChangeListener {
 
     private ViewPager viewPager;
+
+
     private TabsPagerAdapter adapter;
     private ActionBar actionBar;
 
@@ -23,7 +24,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         setContentView(R.layout.activity_main);
 
         viewPager = (ViewPager) findViewById(R.id.pager);
-        actionBar = getActionBar();
+        actionBar = getSupportActionBar();
         adapter = new TabsPagerAdapter(getSupportFragmentManager());
 
         viewPager.setAdapter(adapter);
@@ -54,23 +55,17 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     }
 
     @Override
-    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
-
+    public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
         viewPager.setCurrentItem(tab.getPosition());
+    }
+
+    @Override
+    public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
 
     }
 
     @Override
-    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft){
+    public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
 
     }
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
-
-    }
-
-
-
-
 }
