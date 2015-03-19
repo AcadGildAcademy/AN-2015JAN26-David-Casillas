@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CustomActionBar</string>
+
+    <string name="search">Search</string>
+    <string name="refresh">Refresh</string>
+
+</resources>
