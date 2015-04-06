@@ -9,9 +9,9 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.acadgild.imdb.async.DownloadImageTask;
 import com.acadgild.imdb.model.MovieInfo;
 import com.acadgild.imdb.R;
+import com.acadgild.imdb.utils.ImageLoader;
 
 import java.util.List;
 
@@ -21,6 +21,7 @@ public class ListAdapter extends ArrayAdapter<MovieInfo> {
     private Context context;
     private int resource;
     private List<MovieInfo> movieList;
+    public ImageLoader imageLoader;
 
     public ListAdapter(Context context, int resource, List<MovieInfo> movieList) {
         super(context, resource, movieList);
@@ -28,6 +29,7 @@ public class ListAdapter extends ArrayAdapter<MovieInfo> {
         this.context = context;
         this.resource = resource;
         this.movieList = movieList;
+        imageLoader = new ImageLoader(context.getApplicationContext());
     }
 
     @Override
@@ -47,6 +49,7 @@ public class ListAdapter extends ArrayAdapter<MovieInfo> {
             holder.voteHolder = (TextView) row.findViewById(R.id.voteCountTextView);
 
             row.setTag(holder);
+
         } else {
 
             holder = (Holder) row.getTag();
@@ -57,11 +60,10 @@ public class ListAdapter extends ArrayAdapter<MovieInfo> {
         holder.titleHolder.setText(info.getTitle());
         holder.dateHolder.setText(info.getDate());
         holder.ratingHolder.setRating(Float.parseFloat(info.getVote_average()) / 2);
-        holder.imageHolder.setImageResource(R.drawable.loading_image);
         if (info.getPoster().equals("null")) {
-            holder.imageHolder.setImageResource(R.drawable.loading_image);
+            holder.imageHolder.setImageResource(R.drawable.no_image);
         } else {
-            new DownloadImageTask(holder.imageHolder).execute("http://image.tmdb.org/t/p/w500" + info.getPoster());
+            imageLoader.DisplayImage("http://image.tmdb.org/t/p/w500" + info.getPoster(), holder.imageHolder);
         }
         holder.voteHolder.setText("(" + info.getVote_average() + "/10) voted by " + info.getVote_count() + " users");
 

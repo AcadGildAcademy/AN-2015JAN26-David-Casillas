@@ -1,5 +1,6 @@
 package com.acadgild.imdb.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -12,26 +13,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.acadgild.imdb.adapter.ListAdapter;
 import com.acadgild.imdb.async.GetMovieInfo;
 import com.acadgild.imdb.async.GetSingleMovieInfo;
 import com.acadgild.imdb.model.Constants;
 import com.acadgild.imdb.model.MovieInfo;
 import com.acadgild.imdb.R;
+import com.acadgild.imdb.views.DetailsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MovieList extends ListFragment {
 
-    public String CONTEXT_PATH;
     public String URL;
     private ListView listview;
     private List<MovieInfo> movieList;
+    public ListAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        setRetainInstance(true);
         setHasOptionsMenu(true);
 
         return inflater.inflate(R.layout.movie_list, container, false);
@@ -44,31 +46,28 @@ public class MovieList extends ListFragment {
         listview = getListView();
         movieList = new ArrayList<>();
 
-        CONTEXT_PATH = "movie/now_playing";
+        SetList(Constants.MOVIE_NOW_PLAYING);
 
-        SetList(CONTEXT_PATH);
+        getActivity().setTitle(Constants.NOW_PLAYING);
 
-        getActivity().setTitle("IMDb    Upcoming");
+        adapter = new ListAdapter(getActivity(), R.layout.list_item, movieList);
 
     }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         MovieInfo movieInfo = movieList.get(position);
+        adapter.imageLoader.clearCache();
         showDetails(movieInfo.getId());
     }
 
     void showDetails(String id) {
 
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-        MovieDetails movieDetailsFragment = new MovieDetails();
-        Bundle arguments = new Bundle();
-        arguments.putString("MovieID", id);
-        movieDetailsFragment.setArguments(arguments);
-        transaction.replace(R.id.fragmentContainer, movieDetailsFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), DetailsActivity.class);
+        intent.putExtra("MovieID", id);
+        startActivity(intent);
+
     }
 
     @Override
@@ -88,56 +87,67 @@ public class MovieList extends ListFragment {
         switch(id) {
 
             case R.id.watchlist:
-                getActivity().setTitle("IMDb    Watchlist");
+                getActivity().setTitle(Constants.WATCHLIST);
 
                 return true;
 
             case R.id.favorites:
-                getActivity().setTitle("IMDb    Favorites");
+                getActivity().setTitle(Constants.FAVORITES);
 
                 return true;
 
             case R.id.refresh:
 
+                String barTitle = getActivity().getTitle().toString();
+
+                switch(barTitle) {
+                    case Constants.MOST_POPULAR:
+                        SetList(Constants.MOVIE_POPULAR);
+                    case Constants.UPCOMING:
+                        SetList(Constants.MOVIE_UPCOMING);
+                    case Constants.NOW_PLAYING:
+                        SetList(Constants.MOVIE_NOW_PLAYING);
+                    case Constants.TOP_RATED:
+                        SetList(Constants.MOVIE_TOP_RATED);
+                    case Constants.LATEST:
+                        SetListSingleMovie(Constants.MOVIE_LATEST);
+            }
+
+
                 return true;
 
             case R.id.most_popular:
 
-                CONTEXT_PATH = "movie/popular";
-                SetList(CONTEXT_PATH);
-                getActivity().setTitle("IMDb    Most Popular");
+                SetList(Constants.MOVIE_POPULAR);
+                getActivity().setTitle(Constants.MOST_POPULAR);
 
                 return true;
 
             case R.id.upcoming_movies:
 
-                CONTEXT_PATH = "movie/upcoming";
-                SetList(CONTEXT_PATH);
-                getActivity().setTitle("IMDb    Upcoming");
+                SetList(Constants.MOVIE_UPCOMING);
+                getActivity().setTitle(Constants.UPCOMING);
 
                 return true;
 
             case R.id.latest_movies:
 
-                CONTEXT_PATH = "movie/latest";
-                SetListSingleMovie(CONTEXT_PATH);
-                getActivity().setTitle("IMDb    Latest");
+                SetListSingleMovie(Constants.MOVIE_LATEST);
+                getActivity().setTitle(Constants.LATEST);
 
                 return true;
 
             case R.id.now_playing:
 
-                CONTEXT_PATH = "movie/now_playing";
-                SetList(CONTEXT_PATH);
-                getActivity().setTitle("IMDb    Now Playing");
+                SetList(Constants.MOVIE_NOW_PLAYING);
+                getActivity().setTitle(Constants.NOW_PLAYING);
 
                 return true;
 
             case R.id.top_rated:
 
-                CONTEXT_PATH = "movie/top_rated";
-                SetList(CONTEXT_PATH);
-                getActivity().setTitle("IMDb    Top Rated");
+                SetList(Constants.MOVIE_TOP_RATED);
+                getActivity().setTitle(Constants.TOP_RATED);
 
                 return true;
         }

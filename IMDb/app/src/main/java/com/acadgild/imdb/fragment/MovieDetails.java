@@ -1,6 +1,8 @@
 package com.acadgild.imdb.fragment;
 
-import android.os.AsyncTask;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,19 +13,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.acadgild.imdb.model.Constants;
-import com.acadgild.imdb.async.DownloadImageTask;
-import com.acadgild.imdb.model.MovieInfo;
 import com.acadgild.imdb.R;
-import com.acadgild.imdb.net.ServiceHandler;
+import com.acadgild.imdb.async.DownloadImageTask;
+import com.acadgild.imdb.async.GetCastCrew;
+import com.acadgild.imdb.async.GetMovieDetails;
+import com.acadgild.imdb.model.Cast;
+import com.acadgild.imdb.model.Constants;
+import com.acadgild.imdb.model.MovieInfo;
+import com.acadgild.imdb.utils.ImageLoader;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class MovieDetails extends Fragment {
@@ -41,37 +44,45 @@ public class MovieDetails extends Fragment {
     public ImageView poster;
     public ImageView favorites;
     public ImageView watchlist;
+    public String movieID;
+    private ImageLoader imageLoader;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.movie_details, container, false);
-
-        setRetainInstance(true);
         setHasOptionsMenu(true);
 
-        title = (TextView) view.findViewById(R.id.titleTextView2);
-        tagline = (TextView) view.findViewById(R.id.smallDescriptionTextView);
-        releaseDate = (TextView) view.findViewById(R.id.releaseDateTextView2);
-        budget = (TextView) view.findViewById(R.id.budgetTextView);
-        revenue = (TextView) view.findViewById(R.id.revenueTextView);
-        status = (TextView) view.findViewById(R.id.statusTextView);
-        voteCount = (TextView) view.findViewById(R.id.voteCountTextView2);
-        ratingBar = (RatingBar) view.findViewById(R.id.ratingBar2);
-        poster = (ImageView) view.findViewById(R.id.movieImageView2);
-        overView = (TextView) view.findViewById(R.id.descriptionTextView);
-        favorites = (ImageView) view.findViewById(R.id.favoritesImageView);
+        return inflater.inflate(R.layout.movie_details, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        title = (TextView) getActivity().findViewById(R.id.titleTextView2);
+        tagline = (TextView) getActivity().findViewById(R.id.smallDescriptionTextView);
+        releaseDate = (TextView) getActivity().findViewById(R.id.releaseDateTextView2);
+        budget = (TextView) getActivity().findViewById(R.id.budgetTextView);
+        revenue = (TextView) getActivity().findViewById(R.id.revenueTextView);
+        status = (TextView) getActivity().findViewById(R.id.statusTextView);
+        voteCount = (TextView) getActivity().findViewById(R.id.voteCountTextView2);
+        ratingBar = (RatingBar) getActivity().findViewById(R.id.ratingBar2);
+        poster = (ImageView) getActivity().findViewById(R.id.movieImageView2);
+        overView = (TextView) getActivity().findViewById(R.id.descriptionTextView);
+        favorites = (ImageView) getActivity().findViewById(R.id.favoritesImageView);
         favorites.setImageResource(R.drawable.favorite_disable_normal);
         favorites.setTag("disable");
-        watchlist = (ImageView) view.findViewById(R.id.watchlistImageView);
+        watchlist = (ImageView) getActivity().findViewById(R.id.watchlistImageView);
         watchlist.setImageResource(R.drawable.watchlist_disable_normal);
         watchlist.setTag("disable");
 
-        String movieID = getArguments().getString("MovieID");
+        movieID = getArguments().getString("MovieID");
+        Log.e("movieID", movieID);
+
         URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + Constants.API_KEY;
 
         try {
-            MovieInfo movieInfo = new GetSingleMovieInfo().execute(URL).get();
+            MovieInfo movieInfo = new GetMovieDetails(getActivity()).execute(URL).get();
             title.setText(movieInfo.getTitle());
             tagline.setText(movieInfo.getTagline());
             releaseDate.setText(movieInfo.getDate());
@@ -82,7 +93,7 @@ public class MovieDetails extends Fragment {
             voteCount.setText("(" + movieInfo.getVote_average() + "/10) voted by " + movieInfo.getVote_count() + " users");
             ratingBar.setRating(Float.parseFloat(movieInfo.getVote_average()) / 2);
             if (movieInfo.getPoster().equals("null")) {
-                poster.setImageResource(R.drawable.loading_image);
+                poster.setImageResource(R.drawable.no_image);
             } else {
                 new DownloadImageTask(poster).execute("http://image.tmdb.org/t/p/w500" + movieInfo.getPoster());
             }
@@ -121,7 +132,10 @@ public class MovieDetails extends Fragment {
             }
         });
 
-        return view;
+        showCast();
+        showCrew();
+        showTrailers();
+        showPosters();
     }
 
     @Override
@@ -152,48 +166,239 @@ public class MovieDetails extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    private class GetSingleMovieInfo extends AsyncTask<String, Void, MovieInfo> {
+    private void showCast() {
 
-        @Override
-        protected MovieInfo doInBackground(String... urls) {
-            ServiceHandler sh = new ServiceHandler();
-            String jsonStr = sh.makeServiceCall(urls[0], ServiceHandler.GET);
+        LinearLayout castsSection = (LinearLayout) getActivity().findViewById(R.id.casts_section);
 
-            if (jsonStr != null) {
-                try {
-                    JSONObject o = new JSONObject(jsonStr);
+        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + "/credits" + Constants.API_KEY;
 
-                    MovieInfo movieInfo = new MovieInfo();
-                    movieInfo.setTitle(o.getString(Constants.TAG_TITLE));
-                    movieInfo.setDate(o.getString(Constants.TAG_RELEASE_DATE));
-                    movieInfo.setPoster(o.getString(Constants.TAG_POSTER_PATH));
-                    movieInfo.setVote_average(o.getString(Constants.TAG_VOTE_AVERAGE));
-                    movieInfo.setVote_count(o.getString(Constants.TAG_VOTE_COUNT));
-                    movieInfo.setBudget(o.getString(Constants.TAG_BUDGET));
-                    movieInfo.setRevenue(o.getString(Constants.TAG_REVENUE));
-                    movieInfo.setTagline(o.getString(Constants.TAG_TAGLINE));
-                    movieInfo.setStatus(o.getString(Constants.TAG_STATUS));
-                    movieInfo.setOverview(o.getString(Constants.TAG_OVERVIEW));
+        try {
+        List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_CAST).execute(URL).get();
 
-                    return movieInfo;
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+            if (castList != null && !castList.isEmpty()) {
+                castsSection.setVisibility(View.VISIBLE);
+                setCasts(castList);
             } else {
-                Log.e("ServiceHandler", "Couldn't get any data from the url");
+                castsSection.setVisibility(View.GONE);
             }
-            return null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        protected void onPostExecute(MovieInfo result) {
-            super.onPostExecute(result);
+    // Add multiple casts in the casts container
+    private void setCasts(List<Cast> casts) {
 
-            if (result == null) {
+        LinearLayout castsContainer = (LinearLayout) getActivity().findViewById(R.id.casts_container);
 
-                Toast.makeText(getActivity(), "Unable to fetch data from server", Toast.LENGTH_LONG).show();
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        imageLoader = new ImageLoader(getActivity());
+
+        int size = casts.size();
+        for (int i = 0; i < size; i++) {
+            Cast cast = casts.get(i);
+
+            if (cast != null) {
+
+                LinearLayout clickableColumn = (LinearLayout) inflater.inflate(R.layout.column_cast_crew, null);
+                ImageView thumbnailImage = (ImageView) clickableColumn.findViewById(R.id.thumbnail_image);
+                TextView titleView = (TextView) clickableColumn.findViewById(R.id.title_view);
+                TextView subTitleView = (TextView) clickableColumn.findViewById(R.id.subtitle_view);
+
+                if (cast.getProfilePath().equals("null")) {
+                    thumbnailImage.setImageResource(R.drawable.no_image);
+                } else {
+                    imageLoader.DisplayImage("http://image.tmdb.org/t/p/w500" + cast.getProfilePath(), thumbnailImage);
+                }
+
+                titleView.setText(cast.getName());
+                subTitleView.setText(cast.getCharacter());
+
+                castsContainer.addView(clickableColumn);
+
+                if (i != size - 1) {
+                    castsContainer.addView(inflater.inflate(R.layout.horizontal_divider, null));
+                }
             }
         }
     }
 
+    private void showCrew() {
+
+        LinearLayout castsSection = (LinearLayout) getActivity().findViewById(R.id.crew_section);
+
+        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + "/credits" + Constants.API_KEY;
+
+        try {
+            List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_CREW).execute(URL).get();
+
+            if (castList != null && !castList.isEmpty()) {
+                castsSection.setVisibility(View.VISIBLE);
+                setCrew(castList);
+            } else {
+                castsSection.setVisibility(View.GONE);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Add multiple casts in the casts container
+    private void setCrew(List<Cast> casts) {
+
+        LinearLayout castsContainer = (LinearLayout) getActivity().findViewById(R.id.crew_container);
+
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        imageLoader = new ImageLoader(getActivity());
+
+        int size = casts.size();
+        for (int i = 0; i < size; i++) {
+            Cast cast = casts.get(i);
+
+            if (cast != null) {
+
+                LinearLayout clickableColumn = (LinearLayout) inflater.inflate(R.layout.column_cast_crew, null);
+                ImageView thumbnailImage = (ImageView) clickableColumn.findViewById(R.id.thumbnail_image);
+                TextView titleView = (TextView) clickableColumn.findViewById(R.id.title_view);
+                TextView subTitleView = (TextView) clickableColumn.findViewById(R.id.subtitle_view);
+
+                if (cast.getProfilePath().equals("null")) {
+                    thumbnailImage.setImageResource(R.drawable.no_image);
+                } else {
+                    imageLoader.DisplayImage("http://image.tmdb.org/t/p/w500" + cast.getProfilePath(), thumbnailImage);
+                }
+
+                titleView.setText(cast.getName());
+                subTitleView.setText(cast.getJob());
+
+                castsContainer.addView(clickableColumn);
+
+                if (i != size - 1) {
+                    castsContainer.addView(inflater.inflate(R.layout.horizontal_divider, null));
+                }
+            }
+        }
+    }
+
+    private void showTrailers() {
+
+        LinearLayout castsSection = (LinearLayout) getActivity().findViewById(R.id.trailer_section);
+
+        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + "/videos" + Constants.API_KEY;
+
+        try {
+            List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_RESULTS).execute(URL).get();
+
+            if (castList != null && !castList.isEmpty()) {
+                castsSection.setVisibility(View.VISIBLE);
+                setTrailers(castList);
+            } else {
+                castsSection.setVisibility(View.GONE);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Add multiple casts in the casts container
+    private void setTrailers(List<Cast> casts) {
+
+        LinearLayout castsContainer = (LinearLayout) getActivity().findViewById(R.id.trailer_container);
+
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        int size = casts.size();
+        for (int i = 0; i < size; i++) {
+            Cast cast = casts.get(i);
+
+            if (cast != null) {
+
+                LinearLayout clickableColumn = (LinearLayout) inflater.inflate(R.layout.column_trailers, null);
+                TextView titleView = (TextView) clickableColumn.findViewById(R.id.trailer_link);
+
+                titleView.setText(cast.getName());
+                final String trailer = "https://www.youtube.com/watch?v=" + cast.getKey();
+                titleView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(trailer)));
+                    }
+                });
+
+                castsContainer.addView(clickableColumn);
+
+                if (i != size - 1) {
+                    castsContainer.addView(inflater.inflate(R.layout.horizontal_divider, null));
+                }
+            }
+        }
+    }
+
+    private void showPosters() {
+
+        LinearLayout castsSection = (LinearLayout) getActivity().findViewById(R.id.posters_section);
+
+        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + "/images" + Constants.API_KEY;
+
+        try {
+            List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_POSTERS).execute(URL).get();
+
+            if (castList != null && !castList.isEmpty()) {
+                castsSection.setVisibility(View.VISIBLE);
+                setPosters(castList);
+            } else {
+                castsSection.setVisibility(View.GONE);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Add multiple casts in the casts container
+    private void setPosters(List<Cast> casts) {
+
+        LinearLayout castsContainer = (LinearLayout) getActivity().findViewById(R.id.posters_container);
+
+        LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        imageLoader = new ImageLoader(getActivity());
+
+        int size = casts.size();
+        for (int i = 0; i < size; i++) {
+            Cast cast = casts.get(i);
+
+            if (cast != null) {
+
+                LinearLayout clickableColumn = (LinearLayout) inflater.inflate(R.layout.column_cast_crew, null);
+                ImageView thumbnailImage = (ImageView) clickableColumn.findViewById(R.id.thumbnail_image);
+                TextView titleView = (TextView) clickableColumn.findViewById(R.id.title_view);
+                TextView subTitleView = (TextView) clickableColumn.findViewById(R.id.subtitle_view);
+
+                if (cast.getProfilePath().equals("null")) {
+                    thumbnailImage.setImageResource(R.drawable.no_image);
+                } else {
+                    imageLoader.DisplayImage("http://image.tmdb.org/t/p/w500" + cast.getProfilePath(), thumbnailImage);
+                }
+
+                titleView.setVisibility(View.GONE);
+                subTitleView.setVisibility(View.GONE);
+
+                castsContainer.addView(clickableColumn);
+
+                if (i != size - 1) {
+                    castsContainer.addView(inflater.inflate(R.layout.horizontal_divider, null));
+                }
+            }
+        }
+    }
 }
