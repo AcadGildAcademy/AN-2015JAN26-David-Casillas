@@ -7,20 +7,18 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.acadgild.imdb.R;
-import com.acadgild.imdb.async.DownloadImageTask;
 import com.acadgild.imdb.async.GetCastCrew;
 import com.acadgild.imdb.async.GetMovieDetails;
+import com.acadgild.imdb.db.MovieDataBase;
 import com.acadgild.imdb.model.Cast;
 import com.acadgild.imdb.model.Constants;
 import com.acadgild.imdb.model.MovieInfo;
@@ -46,6 +44,7 @@ public class MovieDetails extends Fragment {
     public ImageView watchlist;
     public String movieID;
     private ImageLoader imageLoader;
+    public MovieInfo movie;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -70,39 +69,33 @@ public class MovieDetails extends Fragment {
         poster = (ImageView) getActivity().findViewById(R.id.movieImageView2);
         overView = (TextView) getActivity().findViewById(R.id.descriptionTextView);
         favorites = (ImageView) getActivity().findViewById(R.id.favoritesImageView);
-        favorites.setImageResource(R.drawable.favorite_disable_normal);
-        favorites.setTag("disable");
         watchlist = (ImageView) getActivity().findViewById(R.id.watchlistImageView);
-        watchlist.setImageResource(R.drawable.watchlist_disable_normal);
-        watchlist.setTag("disable");
 
         movieID = getArguments().getString("MovieID");
         Log.e("movieID", movieID);
 
-        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + Constants.API_KEY;
-
-        try {
-            MovieInfo movieInfo = new GetMovieDetails(getActivity()).execute(URL).get();
-            title.setText(movieInfo.getTitle());
-            tagline.setText(movieInfo.getTagline());
-            releaseDate.setText(movieInfo.getDate());
-            budget.setText("$" + movieInfo.getBudget());
-            revenue.setText("$" + movieInfo.getRevenue());
-            status.setText(movieInfo.getStatus());
-            overView.setText(movieInfo.getOverview());
-            voteCount.setText("(" + movieInfo.getVote_average() + "/10) voted by " + movieInfo.getVote_count() + " users");
-            ratingBar.setRating(Float.parseFloat(movieInfo.getVote_average()) / 2);
-            if (movieInfo.getPoster().equals("null")) {
-                poster.setImageResource(R.drawable.no_image);
-            } else {
-                new DownloadImageTask(poster).execute("http://image.tmdb.org/t/p/w500" + movieInfo.getPoster());
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        movie = new MovieInfo();
+        movie = getMovie(movieID);
+        movie.setId(movieID);
+        movie.setWatchList(0);
+        movie.setFavorites(0);
+        title.setText(movie.getTitle());
+        tagline.setText(movie.getTagline());
+        releaseDate.setText(movie.getDate());
+        budget.setText("$" + movie.getBudget());
+        revenue.setText("$" + movie.getRevenue());
+        status.setText(movie.getStatus());
+        overView.setText(movie.getOverview());
+        voteCount.setText("(" + movie.getVote_average() + "/10) voted by " + movie.getVote_count() + " users");
+        ratingBar.setRating(Float.parseFloat(movie.getVote_average()) / 2);
+        if (movie.getPoster().equals("null")) {
+            poster.setImageResource(R.drawable.no_image);
+        } else {
+            imageLoader = new ImageLoader(getActivity());
+            imageLoader.DisplayImage("http://image.tmdb.org/t/p/w500" + movie.getPoster(), poster);
         }
+
+        checkMovie(movieID);
 
         favorites.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,9 +104,13 @@ public class MovieDetails extends Fragment {
                 if(tag == "disable") {
                     favorites.setImageResource(R.drawable.favorite_enable_normal);
                     favorites.setTag("enable");
+                    movie.setFavorites(1);
+                    addDeleteUpdate(movie);
                 } else {
                     favorites.setImageResource(R.drawable.favorite_disable_normal);
                     favorites.setTag("disable");
+                    movie.setFavorites(0);
+                    addDeleteUpdate(movie);
                 }
             }
         });
@@ -125,9 +122,14 @@ public class MovieDetails extends Fragment {
                 if(tag == "disable") {
                     watchlist.setImageResource(R.drawable.watchlist_enable_normal);
                     watchlist.setTag("enable");
+                    movie.setWatchList(1);
+                    addDeleteUpdate(movie);
+
                 } else {
                     watchlist.setImageResource(R.drawable.watchlist_disable_normal);
                     watchlist.setTag("disable");
+                    movie.setWatchList(0);
+                    addDeleteUpdate(movie);
                 }
             }
         });
@@ -138,32 +140,72 @@ public class MovieDetails extends Fragment {
         showPosters();
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_details, menu);
+    private MovieInfo getMovie(String id) {
+
+        URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + id + Constants.API_KEY;
+
+        MovieInfo movieInfo = new MovieInfo();
+        try {
+            movieInfo = new GetMovieDetails(getActivity()).execute(URL).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return movieInfo;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private void addDeleteUpdate(MovieInfo movieInfo) {
 
-        //noinspection SimplifiableIfStatement
-        switch(id) {
-
-            case R.id.addFavorite:
-
-                return true;
-
-            case R.id.addWatchlist:
-
-                return true;
+        MovieDataBase db = new MovieDataBase(getActivity());
+        boolean check = db.checkMovie(movieInfo.getId());
+        if (movieInfo.getFavorites() == 0 && movieInfo.getWatchList() == 0) { //if no favorites and no watchlist
+            if (check) { //if in database, remove from database
+                db.deleteMovie(movieInfo);
+                //Toast.makeText(getActivity(), "Deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), String.valueOf(movieInfo.getFavorites() + " " + String.valueOf(movieInfo.getWatchList())), Toast.LENGTH_SHORT).show();
+            }
+        } else if (movieInfo.getWatchList() == 1 || movieInfo.getFavorites() == 1) { //if is a favorite or watchlist
+            if (check) { //if in database, update
+                db.updateMovie(movieInfo);
+                //Toast.makeText(getActivity(), "Updated", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), String.valueOf(movieInfo.getFavorites() + " " + String.valueOf(movieInfo.getWatchList())), Toast.LENGTH_SHORT).show();
+            } else { //if not in database, add
+                db.addMovie(movieInfo);
+                //Toast.makeText(getActivity(), "Added", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), String.valueOf(movieInfo.getFavorites() + " " + String.valueOf(movieInfo.getWatchList())), Toast.LENGTH_SHORT).show();
+            }
         }
+    }
 
-        return super.onOptionsItemSelected(item);
+    private void checkMovie(String id) {
+
+        MovieDataBase db = new MovieDataBase(getActivity());
+        Boolean check = db.checkMovie(id);
+
+        if (!check) { //checks if movie does not existing in database
+            favorites.setImageResource(R.drawable.favorite_disable_normal);
+            favorites.setTag("disable");
+            watchlist.setImageResource(R.drawable.watchlist_disable_normal);
+            watchlist.setTag("disable");
+        } else { //if movie does exist
+            MovieInfo movieInfo = db.getMovie(id);
+            if (movieInfo.getFavorites() == 0) { //set image based on database value
+                favorites.setImageResource(R.drawable.favorite_disable_normal);
+                favorites.setTag("disable");
+            } else if (movieInfo.getFavorites() == 1) {
+                favorites.setImageResource(R.drawable.favorite_enable_normal);
+                favorites.setTag("enable");
+            }
+
+            if (movieInfo.getWatchList() == 0) { //set image based on database value
+                watchlist.setImageResource(R.drawable.watchlist_disable_normal);
+                watchlist.setTag("disable");
+            } else if (movieInfo.getWatchList() == 1) {
+                watchlist.setImageResource(R.drawable.watchlist_enable_normal);
+                watchlist.setTag("enable");
+            }
+        }
     }
 
     private void showCast() {

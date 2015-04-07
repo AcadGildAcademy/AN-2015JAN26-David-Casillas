@@ -12,10 +12,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.acadgild.imdb.adapter.ListAdapter;
 import com.acadgild.imdb.async.GetMovieInfo;
 import com.acadgild.imdb.async.GetSingleMovieInfo;
+import com.acadgild.imdb.db.MovieDataBase;
 import com.acadgild.imdb.model.Constants;
 import com.acadgild.imdb.model.MovieInfo;
 import com.acadgild.imdb.R;
@@ -87,12 +89,14 @@ public class MovieList extends ListFragment {
         switch(id) {
 
             case R.id.watchlist:
-                getActivity().setTitle(Constants.WATCHLIST);
+
+                WatchList();
 
                 return true;
 
             case R.id.favorites:
-                getActivity().setTitle(Constants.FAVORITES);
+
+                Favorites();
 
                 return true;
 
@@ -111,8 +115,11 @@ public class MovieList extends ListFragment {
                         SetList(Constants.MOVIE_TOP_RATED);
                     case Constants.LATEST:
                         SetListSingleMovie(Constants.MOVIE_LATEST);
+                    case Constants.WATCHLIST:
+                        WatchList();
+                    case Constants.FAVORITES:
+                        Favorites();
             }
-
 
                 return true;
 
@@ -167,5 +174,31 @@ public class MovieList extends ListFragment {
         URL = Constants.BASE_URL + Constants.API_VERSION + "/" + context_path + Constants.API_KEY;
         movieList.clear();
         new GetSingleMovieInfo(getActivity(), movieList, listview).execute(URL);
+    }
+
+    private void Favorites() {
+        movieList.clear();
+        MovieDataBase db = new MovieDataBase(getActivity());
+        movieList = db.getFavorites();
+        if (movieList.isEmpty()) {
+            Toast.makeText(getActivity(), "Favorites list is empty", Toast.LENGTH_SHORT).show();
+        } else {
+            getActivity().setTitle(Constants.FAVORITES);
+            adapter = new ListAdapter(getActivity(), R.layout.list_item, movieList);
+            listview.setAdapter(adapter);
+        }
+    }
+
+    private void WatchList() {
+        movieList.clear();
+        MovieDataBase db = new MovieDataBase(getActivity());
+        movieList = db.getWatchList();
+        if (movieList.isEmpty()) {
+            Toast.makeText(getActivity(), "Watchlist is empty", Toast.LENGTH_SHORT).show();
+        } else {
+            getActivity().setTitle(Constants.WATCHLIST);
+            adapter = new ListAdapter(getActivity(), R.layout.list_item, movieList);
+            listview.setAdapter(adapter);
+        }
     }
 }

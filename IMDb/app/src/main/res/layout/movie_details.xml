@@ -163,28 +163,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
 
-            <ScrollView
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:scrollbars="vertical"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/text_half_margin"
-                android:id="@+id/descScrollView" >
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@android:color/black"
-                    android:id="@+id/descriptionTextView" />
-
-            </ScrollView>
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/black"
+                android:id="@+id/descriptionTextView" />
 
             <ImageView
                 android:layout_width="85dp"
                 android:layout_height="85dp"
                 android:id="@+id/favoritesImageView"
                 android:src="@drawable/favorite_disable_normal"
-                android:layout_below="@+id/descScrollView"
+                android:layout_below="@+id/descriptionTextView"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
                 android:padding="@dimen/text_margin"

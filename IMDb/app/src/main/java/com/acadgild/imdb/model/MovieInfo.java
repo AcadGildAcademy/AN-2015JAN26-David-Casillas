@@ -14,8 +14,26 @@ public class MovieInfo {
     private String revenue;
     private String overview;
     private String tagline;
+    private int watchList;
+    private int favorites;
 
     public MovieInfo() {
+    }
+
+    public int getWatchList() {
+        return watchList;
+    }
+
+    public void setWatchList(int watchList) {
+        this.watchList = watchList;
+    }
+
+    public int getFavorites() {
+        return favorites;
+    }
+
+    public void setFavorites(int favorites) {
+        this.favorites = favorites;
     }
 
     public String getId() {
