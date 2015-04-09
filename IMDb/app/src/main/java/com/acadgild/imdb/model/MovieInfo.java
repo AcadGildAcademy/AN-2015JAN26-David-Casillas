@@ -124,3 +124,4 @@ public class MovieInfo {
         this.tagline = tagline;
     }
 }
+

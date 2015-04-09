@@ -6,12 +6,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.v7.internal.app.ToolbarActionBar;
 
 import com.acadgild.imdb.model.MovieInfo;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 
 public class MovieDataBase extends SQLiteOpenHelper {
@@ -116,19 +114,28 @@ public class MovieDataBase extends SQLiteOpenHelper {
         }
     }
 
-    public int updateMovie(MovieInfo movieInfo) {
+    public int updateMovieF(MovieInfo movieInfo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_IS_FAVORITE, movieInfo.getFavorites());
+        return db.update(TABLE_MOVIEDETAILS, values, COLUMN_ID + "=?", new String[] {movieInfo.getId()});
+    }
+
+    public int updateMovieW(MovieInfo movieInfo) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
         values.put(COLUMN_IS_WATCHLIST, movieInfo.getWatchList());
         return db.update(TABLE_MOVIEDETAILS, values, COLUMN_ID + "=?", new String[] {movieInfo.getId()});
     }
 
     public List<MovieInfo> getFavorites() {
         List<MovieInfo> allMovies = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_MOVIEDETAILS;
+
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db.query(TABLE_MOVIEDETAILS,
+                new String[]{COLUMN_ID,COLUMN_TITLE,COLUMN_RELEASE_DATE,COLUMN_POSTER_PATH,
+                COLUMN_VOTE_AVERAGE,COLUMN_VOTE_COUNT,COLUMN_IS_FAVORITE}
+                ,COLUMN_IS_FAVORITE+"=?",new String[]{String.valueOf(1)},null,null,null);
 
         if (cursor.moveToFirst()) {
             do {
@@ -140,7 +147,6 @@ public class MovieDataBase extends SQLiteOpenHelper {
                 movieInfo.setVote_average(cursor.getString(4));
                 movieInfo.setVote_count(cursor.getString(5));
                 movieInfo.setFavorites(cursor.getInt(6));
-                movieInfo.setWatchList(cursor.getInt(7));
                 if (cursor.getInt(6) == 1) {
                     allMovies.add(movieInfo);
                 }
@@ -151,9 +157,12 @@ public class MovieDataBase extends SQLiteOpenHelper {
 
     public List<MovieInfo> getWatchList() {
         List<MovieInfo> allMovies = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_MOVIEDETAILS;
+
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db.query(TABLE_MOVIEDETAILS,
+                new String[]{COLUMN_ID,COLUMN_TITLE,COLUMN_RELEASE_DATE,COLUMN_POSTER_PATH,
+                        COLUMN_VOTE_AVERAGE,COLUMN_VOTE_COUNT,COLUMN_IS_WATCHLIST}
+                ,COLUMN_IS_WATCHLIST+"=?",new String[]{String.valueOf(1)},null,null,null);
 
         if (cursor.moveToFirst()) {
             do {
@@ -164,9 +173,8 @@ public class MovieDataBase extends SQLiteOpenHelper {
                 movieInfo.setPoster(cursor.getString(3));
                 movieInfo.setVote_average(cursor.getString(4));
                 movieInfo.setVote_count(cursor.getString(5));
-                movieInfo.setFavorites(cursor.getInt(6));
-                movieInfo.setWatchList(cursor.getInt(7));
-                if (cursor.getInt(7) == 1) {
+                movieInfo.setWatchList(cursor.getInt(6));
+                if (cursor.getInt(6) == 1) {
                     allMovies.add(movieInfo);
                 }
             } while (cursor.moveToNext());
@@ -174,9 +182,9 @@ public class MovieDataBase extends SQLiteOpenHelper {
         return allMovies;
     }
 
-    public void deleteMovie(MovieInfo movieInfo) {
+    public void deleteNonFavWatchMovie() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_MOVIEDETAILS, COLUMN_ID + "=?", new String[] {movieInfo.getId()});
+        db.delete(TABLE_MOVIEDETAILS, COLUMN_IS_FAVORITE + "=? AND "+COLUMN_IS_WATCHLIST+"=?", new String[] {String.valueOf(0),String.valueOf(0)});
         db.close();
     }
 

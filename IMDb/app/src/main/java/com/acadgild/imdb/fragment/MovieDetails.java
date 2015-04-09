@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.acadgild.imdb.R;
 import com.acadgild.imdb.async.GetCastCrew;
@@ -77,8 +76,6 @@ public class MovieDetails extends Fragment {
         movie = new MovieInfo();
         movie = getMovie(movieID);
         movie.setId(movieID);
-        movie.setWatchList(0);
-        movie.setFavorites(0);
         title.setText(movie.getTitle());
         tagline.setText(movie.getTagline());
         releaseDate.setText(movie.getDate());
@@ -101,17 +98,29 @@ public class MovieDetails extends Fragment {
             @Override
             public void onClick(View v) {
                 Object tag = favorites.getTag();
-                if(tag == "disable") {
+                if (tag == "disable") {
                     favorites.setImageResource(R.drawable.favorite_enable_normal);
                     favorites.setTag("enable");
                     movie.setFavorites(1);
-                    addDeleteUpdate(movie);
+                    MovieDataBase db = new MovieDataBase(getActivity());
+                    boolean check = db.checkMovie(movie.getId());
+                    if (check)
+                        db.updateMovieF(movie);
+                    else
+                        db.addMovie(movie);
                 } else {
                     favorites.setImageResource(R.drawable.favorite_disable_normal);
                     favorites.setTag("disable");
                     movie.setFavorites(0);
-                    addDeleteUpdate(movie);
+                    MovieDataBase db = new MovieDataBase(getActivity());
+                    boolean check = db.checkMovie(movie.getId());
+                    if (check)
+                        db.updateMovieF(movie);
+                    else
+                        db.addMovie(movie);
                 }
+
+
             }
         });
 
@@ -119,20 +128,32 @@ public class MovieDetails extends Fragment {
             @Override
             public void onClick(View v) {
                 Object tag = watchlist.getTag();
-                if(tag == "disable") {
+                if (tag == "disable") {
                     watchlist.setImageResource(R.drawable.watchlist_enable_normal);
                     watchlist.setTag("enable");
                     movie.setWatchList(1);
-                    addDeleteUpdate(movie);
+                    MovieDataBase db = new MovieDataBase(getActivity());
+                    boolean check = db.checkMovie(movie.getId());
+                    if (check)
+                        db.updateMovieW(movie);
+                    else
+                        db.addMovie(movie);
 
                 } else {
                     watchlist.setImageResource(R.drawable.watchlist_disable_normal);
                     watchlist.setTag("disable");
                     movie.setWatchList(0);
-                    addDeleteUpdate(movie);
+                    MovieDataBase db = new MovieDataBase(getActivity());
+                    boolean check = db.checkMovie(movie.getId());
+                    if (check)
+                        db.updateMovieW(movie);
+                    else
+                        db.addMovie(movie);
                 }
+
             }
         });
+
 
         showCast();
         showCrew();
@@ -155,7 +176,7 @@ public class MovieDetails extends Fragment {
         return movieInfo;
     }
 
-    private void addDeleteUpdate(MovieInfo movieInfo) {
+    /*private void addDeleteUpdate(MovieInfo movieInfo) {
 
         MovieDataBase db = new MovieDataBase(getActivity());
         boolean check = db.checkMovie(movieInfo.getId());
@@ -176,11 +197,12 @@ public class MovieDetails extends Fragment {
                 Toast.makeText(getActivity(), String.valueOf(movieInfo.getFavorites() + " " + String.valueOf(movieInfo.getWatchList())), Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 
     private void checkMovie(String id) {
 
         MovieDataBase db = new MovieDataBase(getActivity());
+        db.deleteNonFavWatchMovie();
         Boolean check = db.checkMovie(id);
 
         if (!check) { //checks if movie does not existing in database
@@ -193,20 +215,26 @@ public class MovieDetails extends Fragment {
             if (movieInfo.getFavorites() == 0) { //set image based on database value
                 favorites.setImageResource(R.drawable.favorite_disable_normal);
                 favorites.setTag("disable");
-            } else if (movieInfo.getFavorites() == 1) {
+                movie.setFavorites(0);
+
+            } else  {
                 favorites.setImageResource(R.drawable.favorite_enable_normal);
                 favorites.setTag("enable");
+                movie.setFavorites(1);
             }
 
             if (movieInfo.getWatchList() == 0) { //set image based on database value
                 watchlist.setImageResource(R.drawable.watchlist_disable_normal);
                 watchlist.setTag("disable");
-            } else if (movieInfo.getWatchList() == 1) {
+                movie.setWatchList(0);
+            } else {
                 watchlist.setImageResource(R.drawable.watchlist_enable_normal);
                 watchlist.setTag("enable");
+                movie.setWatchList(1);
             }
         }
     }
+
 
     private void showCast() {
 
@@ -215,7 +243,7 @@ public class MovieDetails extends Fragment {
         URL = Constants.BASE_URL + Constants.API_VERSION + "/movie/" + movieID + "/credits" + Constants.API_KEY;
 
         try {
-        List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_CAST).execute(URL).get();
+            List<Cast> castList = new GetCastCrew(getActivity(), Constants.TAG_CAST).execute(URL).get();
 
             if (castList != null && !castList.isEmpty()) {
                 castsSection.setVisibility(View.VISIBLE);
@@ -223,6 +251,7 @@ public class MovieDetails extends Fragment {
             } else {
                 castsSection.setVisibility(View.GONE);
             }
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

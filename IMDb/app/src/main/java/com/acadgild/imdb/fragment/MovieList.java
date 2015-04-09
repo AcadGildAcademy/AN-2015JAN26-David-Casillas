@@ -2,8 +2,6 @@ package com.acadgild.imdb.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,13 +12,13 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.acadgild.imdb.R;
 import com.acadgild.imdb.adapter.ListAdapter;
 import com.acadgild.imdb.async.GetMovieInfo;
 import com.acadgild.imdb.async.GetSingleMovieInfo;
 import com.acadgild.imdb.db.MovieDataBase;
 import com.acadgild.imdb.model.Constants;
 import com.acadgild.imdb.model.MovieInfo;
-import com.acadgild.imdb.R;
 import com.acadgild.imdb.views.DetailsActivity;
 
 import java.util.ArrayList;
@@ -115,11 +113,11 @@ public class MovieList extends ListFragment {
                         SetList(Constants.MOVIE_TOP_RATED);
                     case Constants.LATEST:
                         SetListSingleMovie(Constants.MOVIE_LATEST);
-                    case Constants.WATCHLIST:
+                    /*case Constants.WATCHLIST:
                         WatchList();
                     case Constants.FAVORITES:
-                        Favorites();
-            }
+                        Favorites();*/
+                }
 
                 return true;
 
@@ -201,4 +199,6 @@ public class MovieList extends ListFragment {
             listview.setAdapter(adapter);
         }
     }
+
 }
+

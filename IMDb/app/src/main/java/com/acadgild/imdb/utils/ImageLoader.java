@@ -43,7 +43,7 @@ public class ImageLoader {
 
         // Creates a thread pool that reuses a fixed number of
         // threads operating off a shared unbounded queue.
-        executorService= Executors.newFixedThreadPool(5);
+        executorService= Executors.newFixedThreadPool(4);
 
     }
 
